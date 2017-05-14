@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <stdlib.h>
+#include "stdlib.h"
 #include <fcntl.h>
 
 
@@ -33,23 +33,16 @@ char** divideString(char x[], char* divider){
 	return c;
 }
 
-/*
-int filter_check(char* x, int i1, int i2, char *op){
 
-	if (!strcmp(op, "<"))  return c[i1-1] <  c[i2-1];
-	if (!strcmp(op, ">"))  return c[i1-1] >  c[i2-1];
-	if (!strcmp(op, ">=")) return c[i1-1] >= c[i2-1];
-	if (!strcmp(op, "<=")) return c[i1-1] <= c[i2-1];
-	if (!strcmp(op, "==")) return c[i1-1] == c[i2-1];
-	if (!strcmp(op, "!=")) return c[i1-1] != c[i2-1];
+int filter(int i1, int i2, char *op){
+	if (!strcmp(op, "<"))  return i1 <  i2;
+	if (!strcmp(op, ">"))  return i1 >  i2;
+	if (!strcmp(op, ">=")) return i1 >= i2;
+	if (!strcmp(op, "<=")) return i1 <= i2;
+	if (!strcmp(op, "==")) return i1 == i2;
+	if (!strcmp(op, "!=")) return i1 != i2;
 }
 
-char* filter(char* x, int i1, int i2, char *op){
-	if (filter_check(x, i1, i2, op))
-		return x;
-	else return NULL;
-}
-*/
 
 
 void printStrings(char **s, int n){
@@ -73,12 +66,19 @@ char* runCommand(char *command, char *input){
 		return input;
 	}
 	if (!strcmp(c[0], "filter")){
-		//...
+		int c1   = atoi(c[1]);
+		char* op = c[2];
+		int c2   = atoi(c[3]); 
+		int i1   = atoi(i[c1-1]);
+		int i2   = atoi(i[c2-1]);
+		if (filter(i1,i2,op))
+			printf("%s\n", input);
+		return input;
 	}
 }
 
 int main(){
-	char command[10] = "const 10";
+	char command[20] = "filter 2 < 4";
 	char a[15] = "a:10:b:4";
 	runCommand(command, a);
 }
