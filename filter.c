@@ -11,9 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "inputProcessing.h"
-#include "readline.h"
-
+#include "stringProcessing.h"
 /**
  * \brief Verifica se um input verifica uma determinada condição (n1 ?? n2)
  * @param  input Input

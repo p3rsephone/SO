@@ -12,8 +12,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "inputProcessing.h"
-#include "readline.h"
+#include "stringProcessing.h"
 
 /*Operação de média
  */

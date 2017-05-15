@@ -14,8 +14,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
-#include "inputProcessing.h"
-#include "readline.h"
+#include "stringProcessing.h"
 
 /**
  * \brief Executa um comando e coloca o valor do exit status no input (input + :x)
