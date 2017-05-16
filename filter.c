@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "stringProcessing.h"
 /**
  * \brief Verifica se um input verifica uma determinada condição (n1 ?? n2)
@@ -50,12 +51,12 @@ int main(int argc, char *argv[]){
 	c1 = atoi(commands[0]) - 1;
 	c2 = atoi(commands[2]) - 1;
 	
-	while((charsRead = read(0, buffer, 4096)) > 0){
+	while((charsRead = readline(0, buffer, 4096)) > 0){
 		if (charsRead > 1){
 			char inputCopy[charsRead];
 			strcpy(inputCopy, buffer);
 			if (filter(inputCopy, c1, c2, commands[1]))
-				printf("%s", buffer);
+				write(1, buffer, charsRead);
 			memset(buffer, 0, charsRead);
 		}
 	}

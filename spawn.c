@@ -76,13 +76,13 @@ int main(int argc, char *argv[]){
 	int charsRead;
 	char* out;
 	
-	while((charsRead = read(0, buffer, 4096)) > 0){
+	while((charsRead = readline(0, buffer, 4096)) > 0){
 		if (charsRead > 1){
 			char argvCopy[strlen(argv[1])];
 			strcpy(argvCopy, argv[1]);
 			char** commands = divideString(argvCopy, " ");
 			out = spawn(buffer, commands);
-			printf("%s\n", out);
+			write(1, out, strlen(out));
 			memset(buffer, 0, charsRead);
 		}
 	}

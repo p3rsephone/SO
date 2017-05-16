@@ -5,6 +5,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <unistd.h>
 
 /**
  * Divide uma string em várias strings
@@ -57,14 +59,27 @@ char* strcatWithSpaces(char **c){
 	return s;
 }
 
+/**
+ * \brief Número de dígitos de um número
+ * @param  n Número
+ * @return   Número de dígitos
+ */
+int numberOfDigits(int n){
+	int i = 1;
+	while (n/10){
+		i++;
+		n /= 10;
+	}
+	return i;
+}
 
-char* addCommandPrefix(char *out, char* cmd){
+char* addCommandPrefix(char* cmd){
 	if (!strcmp(cmd, "const" ) ||
 		!strcmp(cmd, "filter") ||
 		!strcmp(cmd, "window") ||
 		!strcmp(cmd, "spawn" ) ){
 
-		out = malloc (sizeof(char) * (strlen(cmd) + 3));
+		char *out = malloc (sizeof(char) * (strlen(cmd) + 3));
 		int i;
 		out[0] = '.'; out[1] = '/';
 		for (i=2; cmd[i-2]; i++)
@@ -72,8 +87,33 @@ char* addCommandPrefix(char *out, char* cmd){
 		return out;
 	}
 	else{
-		out = malloc (sizeof(char) * (strlen(cmd) + 1));
+		char *out = malloc (sizeof(char) * (strlen(cmd) + 1));
 		strcpy(out, cmd);
 		return out;
 	}
+}
+
+char* fifoName(int id, char* io){
+	int nd = numberOfDigits(id);
+	char* c = malloc(sizeof(char) * (5 + nd + strlen(io)));
+	sprintf(c, "fifo_%d_%s", id, io);
+	return c;
+}
+
+
+int readline(int fildes, char *buf, int nbyte){
+	int n = 0, i;
+	char c;
+
+	do{
+		i = read(fildes, &c, 1);
+		if (i){
+			buf[n] = c;
+			n++;
+		}
+	}
+	while (i && n != nbyte && c != '\n');
+
+	buf[n] = '\0';
+	return n;
 }

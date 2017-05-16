@@ -120,20 +120,6 @@ int sum(Values values, int n){
 }
 
 /**
- * \brief Número de dígitos de um número
- * @param  n Número
- * @return   Número de dígitos
- */
-int numberOfDigits(int n){
-	int i = 1;
-	while (n/10){
-		i++;
-		n /= 10;
-	}
-	return i;
-}
-
-/**
  * \brief Devolve uma nova string com o resultado de efetuar uma operação nos n ultimos números da coluna i
  * @param  input  Input
  * @param  values Estrutura de valores
@@ -193,11 +179,11 @@ int main(int argc, char *argv[]){
 	if (!strcmp(commands[1], "min")) op = 2;
 	if (!strcmp(commands[1], "sum")) op = 3;
 
-	while((charsRead = read(0, buffer, 4096)) > 0){
+	while((charsRead = readline(0, buffer, 4096)) > 0){
 		if (charsRead > 1){
 			char inputCopy[charsRead];
 			out = window(buffer, values, i, op, n);
-			printf("%s", out);
+			write(1, out, strlen(out));
 			memset(buffer, 0, charsRead);
 
 			if (values->used == values->size)

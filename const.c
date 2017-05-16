@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include "stringProcessing.h"
 
 /**
  * Retorna uma nova string com o resultado de colocar um ':x' no input recebido
@@ -41,10 +43,10 @@ int main(int argc, char *argv[]){
 	char *out;
 	int charsRead;
 	strcat(argv[1], "\n");
-	while((charsRead = read(0, buffer, 4096)) > 0){
+	while((charsRead = readline(0, buffer, 4096)) > 0){
 		if (charsRead > 1){
 			out = const_(buffer, argv[1]);
-			printf("%s", out);
+			write(1, out, strlen(out));
 			memset(buffer, 0, charsRead);
 		}
 	}
