@@ -29,11 +29,11 @@ int filter(char* input, int c1, int c2, char* op){
 	i2 = atoi(c[c2]);
 
 	if (!strcmp(op, "<"))  return i1 <  i2;
-	if (!strcmp(op, ">"))  return i1 >  i2;
-	if (!strcmp(op, ">=")) return i1 >= i2;
-	if (!strcmp(op, "<=")) return i1 <= i2;
-	if (!strcmp(op, "==")) return i1 == i2;
-	if (!strcmp(op, "!=")) return i1 != i2;
+    else if (!strcmp(op, ">"))  return i1 >  i2;
+    else if (!strcmp(op, ">=")) return i1 >= i2;
+    else if (!strcmp(op, "<=")) return i1 <= i2;
+    else if (!strcmp(op, "==")) return i1 == i2;
+    else return i1 != i2; //se é !=
 }
 
 /**

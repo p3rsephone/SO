@@ -111,8 +111,7 @@ int readline(int fildes, char *buf, int nbyte){
 			buf[n] = c;
 			n++;
 		}
-	}
-	while (i && n != nbyte && c != '\n');
+	} while (i && n != nbyte && c != '\n');
 
 	buf[n] = '\0';
 	return n;

@@ -159,8 +159,7 @@ void forkNode(ControllerInfo info, int id){
 */
 
 void execNode(ControllerInfo info, int id){
-	int charsRead;
-	int f_in, f_out;
+	int f_in;
 
 	f_in = open(info->node[id-1].pipeIn_name, O_RDONLY);
 
@@ -175,7 +174,6 @@ void execNode(ControllerInfo info, int id){
 
 void readCommand(char *buf, ControllerInfo info){
 	char **c = divideString(buf, " ");
-	int i;
 	if (!strcmp(c[0], "node")){
 		int nodeID = atoi(c[1]);
 		info->node[nodeID-1].id = nodeID;
@@ -224,7 +222,7 @@ void readCommand(char *buf, ControllerInfo info){
 		char* args = strcatWithSpaces(c+3);
 		char buffer[SIZE_BUF];
 
-		int f_in, f, pd1[2], pd2[2];
+		int f_in, pd1[2];
 		//f_out = open(info->node[nodeID].pipeOut_name, O_RDONLY);
 		pipe(pd1);
 
