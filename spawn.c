@@ -14,6 +14,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/wait.h>
 #include "stringProcessing.h"
 
 /**

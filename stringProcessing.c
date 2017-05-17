@@ -49,7 +49,7 @@ int strlenMulti(char **c){
  */
 char* strcatWithSpaces(char **c){
 	char *s = malloc (sizeof(char) * strlenMulti(c));
-	int i, j, n;
+	int i, j, n = 0;
 	for (i=0; c[i]; i++){
 		for (j=0; c[i][j]; j++, n++)
 			s[n] = c[i][j];
@@ -73,6 +73,11 @@ int numberOfDigits(int n){
 	return i;
 }
 
+/**
+ * \brief Adiciona o prefixo "./" aos comandos locais 
+ * @param  cmd Comando
+ * @return String processada
+ */
 char* addCommandPrefix(char* cmd){
 	if (!strcmp(cmd, "const" ) ||
 		!strcmp(cmd, "filter") ||
@@ -93,6 +98,12 @@ char* addCommandPrefix(char* cmd){
 	}
 }
 
+/**
+ * \brief cria uma string que dará nome a um pipe a partir do id
+ * @param id ID do nodo a criar o pipe
+ * @param io Indica se o nodo irá escrever ("in") ou escrever ("out") no pipe
+ * @return Nome do pipe
+ */
 char* fifoName(int id, char* io){
 	int nd = numberOfDigits(id);
 	char* c = malloc(sizeof(char) * (5 + nd + strlen(io)));
@@ -100,8 +111,14 @@ char* fifoName(int id, char* io){
 	return c;
 }
 
-
-int readline(int fildes, char *buf, int nbyte){
+/**
+ * Lê do input uma linha de cada vez
+ * @param fildes 	Identificador do input
+ * @param buf 		Buffer onde será colocado o que foi lido
+ * @param buf_size	Tamanho máximo do buffer
+ * @return Número de caracteres lidos
+ */
+int readline(int fildes, char *buf, int buf_size){
 	int n = 0, i;
 	char c;
 
@@ -111,7 +128,7 @@ int readline(int fildes, char *buf, int nbyte){
 			buf[n] = c;
 			n++;
 		}
-	} while (i && n != nbyte && c != '\n');
+	} while (i && n < buf_size && c != '\n');
 
 	buf[n] = '\0';
 	return n;

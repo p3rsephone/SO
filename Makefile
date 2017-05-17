@@ -1,9 +1,9 @@
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -Wno-unused-result -O2
 
-all: controller
+all: controller const filter spawn window
 
-controller: stringProcessing.o const filter spawn window
+controller: stringProcessing.o
 	$(CC) $(CFLAGS) -o controller stringProcessing.o controller.c
 
 const: stringProcessing.o const.c
@@ -22,5 +22,5 @@ stringProcessing.o: stringProcessing.c stringProcessing.h
 	$(CC) $(CFLAGS) -c stringProcessing.c
 
 clean:
-	$(RM) controller const filter spawn window fifo_1_in fifo_2_in fifo_1_out fifo_2_out *.o *~
+	rm fifo* *.o
 

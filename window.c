@@ -132,7 +132,7 @@ int sum(Values values, int n){
 char* window(char* input, Values values, int i, int op, int n){
 	char **c;
 	char inputCopy[strlen(input) +1], *new;
-	int x;
+	int x = 0;
 	
 	strcpy(inputCopy, input);
 	c = divideString(inputCopy, ":");
