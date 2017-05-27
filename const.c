@@ -13,7 +13,29 @@
 #include <string.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <limits.h>
 #include "stringProcessing.h"
+
+/** \brief Indica se está a processar algum input */
+static int working = 0;
+/** \brief Indica se o programa será fechado */
+static int quit_exec = 0;
+
+/**
+ * \brief Tratará dos sinais de saída
+ * @param sig Sinal
+ */
+void const_handler(int sig){
+	if (sig == SIGINT){
+		if (working)
+			quit_exec = 1;
+		else {
+			close(1);
+			_exit(0);
+		}
+	}
+}
 
 /**
  * Retorna uma nova string com o resultado de colocar um ':x' no input recebido
@@ -39,15 +61,22 @@ char* const_(char* input, char* x){
  * @return ---
  */
 int main(int argc, char *argv[]){
-	char buffer[4096];
+	signal(SIGINT, const_handler);
+	char buffer[PIPE_BUF];
 	char *out;
 	int charsRead;
 	strcat(argv[1], "\n");
-	while((charsRead = readline(0, buffer, 4096)) > 0){
+	while((charsRead = readline(0, buffer, PIPE_BUF)) > 0){
 		if (charsRead > 1){
+			working = 1;
 			out = const_(buffer, argv[1]);
 			write(1, out, strlen(out));
 			memset(buffer, 0, charsRead);
+			working = 0;
+		}
+		if (quit_exec){
+			close(1);
+			return 0;
 		}
 	}
 	return 0;

@@ -13,7 +13,29 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <limits.h>
+#include <signal.h>
 #include "stringProcessing.h"
+
+/** \brief Indica se está a processar algum input */
+static int working = 0;
+/** \brief Indica se o programa será fechado */
+static int quit_exec = 0;
+
+/**
+ * \brief Tratará dos sinais de saída
+ * @param sig Sinal
+ */
+void window_handler(int sig){
+	if (sig == SIGINT){
+		if (working)
+			quit_exec = 1;
+		else {
+			close(1);
+			_exit(0);
+		}
+	}
+}
 
 /*Operação de média
  */
@@ -165,10 +187,11 @@ char* window(char* input, Values values, int i, int op, int n){
  * @return ---
  */
 int main(int argc, char *argv[]){
+	signal(SIGINT, window_handler);
 	Values values = initValues();
 	int charsRead;
 	char** commands = divideString(argv[1], " ");
-	char buffer[4096];
+	char buffer[PIPE_BUF];
 	char* out;
 	int i, n, op;
 
@@ -180,14 +203,20 @@ int main(int argc, char *argv[]){
 	if (!strcmp(commands[1], "min")) op = 2;
 	if (!strcmp(commands[1], "sum")) op = 3;
 
-	while((charsRead = readline(0, buffer, 4096)) > 0){
+	while((charsRead = readline(0, buffer, PIPE_BUF)) > 0){
 		if (charsRead > 1){
+			working = 1;
 			out = window(buffer, values, i, op, n);
 			write(1, out, strlen(out));
 			memset(buffer, 0, charsRead);
 
 			if (values->used == values->size)
 				reallocValues(values);
+			working = 0;
+		}
+		if (quit_exec){
+			close(1);
+			return 0;
 		}
 	}
 	return 0;

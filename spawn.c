@@ -15,7 +15,29 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <limits.h>
+#include <signal.h>
 #include "stringProcessing.h"
+
+/** \brief Indica se está a processar algum input */
+static int working = 0;
+/** \brief Indica se o programa será fechado */
+static int quit_exec = 0;
+
+/**
+ * \brief Tratará dos sinais de saída
+ * @param sig Sinal
+ */
+void spwan_handler(int sig){
+	if (sig == SIGINT){
+		if (working)
+			quit_exec = 1;
+		else {
+			close(1);
+			_exit(0);
+		}
+	}
+}
 
 /**
  * \brief Executa um comando e coloca o valor do exit status no input (input + :x)
@@ -41,7 +63,6 @@ char* spawn(char* input, char** commands){
 				commands[i][strlen(c[n])-1] = '\0';
 		}
 	}
-
 	pipe(pd);
 	x = fork();
 
@@ -57,7 +78,7 @@ char* spawn(char* input, char** commands){
 	wait(&status);
 
 	char status_string[4];
-	sprintf(status_string, "%d", WEXITSTATUS(status));
+	sprintf(status_string, "%d\n", WEXITSTATUS(status));
 	new = malloc (sizeof(char) * (strlen(input) + strlen(status_string) + 1));
 	strcpy(new, input);
 	new[strlen(input)-1] = ':';
@@ -73,19 +94,26 @@ char* spawn(char* input, char** commands){
  * @return ---
  */
 int main(int argc, char *argv[]){
-	char buffer[4096];
+	signal(SIGINT, spwan_handler);
+	char buffer[PIPE_BUF];
 	int charsRead;
 	char* out;
 	
-	while((charsRead = readline(0, buffer, 4096)) > 0){
+	while((charsRead = readline(0, buffer, PIPE_BUF)) > 0){
 		if (charsRead > 1){
+			working = 1;
 			char argvCopy[strlen(argv[1])];
 			strcpy(argvCopy, argv[1]);
 			char** commands = divideString(argvCopy, " ");
 			out = spawn(buffer, commands);
 			write(1, out, strlen(out));
 			memset(buffer, 0, charsRead);
+			working = 0;
 		}
+		if (quit_exec){
+			close(1);
+			return 0;
+		}		
 	}
 	return 0;
 }

@@ -119,17 +119,16 @@ char* fifoName(int id, char* io){
  * @return Número de caracteres lidos
  */
 int readline(int fildes, char *buf, int buf_size){
-	int n = 0, i;
-	char c;
+	int n = 0, i = 1;
+	char c = 0;
 
-	do{
+	while (i && n < buf_size && c != '\n'){
 		i = read(fildes, &c, 1);
 		if (i){
 			buf[n] = c;
 			n++;
 		}
-	} while (i && n < buf_size && c != '\n');
-
+	}
 	buf[n] = '\0';
 	return n;
 }

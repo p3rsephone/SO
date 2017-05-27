@@ -1,10 +1,11 @@
 CC = gcc
 CFLAGS = -g -Wall -Wno-unused-result -O2
+LIBS = -lm
 
 all: controller const filter spawn window
 
 controller: stringProcessing.o
-	$(CC) $(CFLAGS) -o controller stringProcessing.o controller.c
+	$(CC) $(CFLAGS) -o controller stringProcessing.o controller.c $(LIBS)
 
 const: stringProcessing.o const.c
 	$(CC) $(CFLAGS) -o const stringProcessing.o const.c
