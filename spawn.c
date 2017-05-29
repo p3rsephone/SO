@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
 #include <sys/wait.h>
 #include <limits.h>
 #include <signal.h>
@@ -70,8 +69,7 @@ char* spawn(char* input, char** commands){
 		close(pd[0]);
 		fclose(stderr);
 		dup2(pd[1], 1);
-		execvp(commands[0], commands);
-		_exit(errno);
+		_exit(execvp(commands[0], commands));
 	}
 	close(pd[0]);
 	close(pd[1]);

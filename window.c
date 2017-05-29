@@ -55,6 +55,7 @@ void window_handler(int sig){
  */
 typedef struct values_{
 	int *values; ///< Array com os valores
+	int current; ///< Ultimo valor colocado
 	int used;	 ///< Número de elementos usados
 	int size;	 ///< Tamanho do array
 }*Values;
@@ -66,6 +67,7 @@ typedef struct values_{
 Values initValues(){
 	Values values = malloc (sizeof(struct values_));
 	values->size = 10;
+	values->current = 0;
 	values->used = 0;
 	values->values = (int *) malloc (sizeof(int) * values->size);
 	return values;
@@ -175,7 +177,11 @@ char* window(char* input, Values values, int i, int op, int n){
 	new[strlen(input)] = '\0';
 	strcat(new, x_string);
 
-	values->values[values->used++] = atoi(c[i]);
+	if (n == values->used){
+		values->values[values->current] = atoi(c[i]);
+		values->current = (values->current + 1)%values->used;
+	}
+	else values->values[values->used++] = atoi(c[i]);
 
 	return new;
 }
@@ -209,7 +215,7 @@ int main(int argc, char *argv[]){
 			out = window(buffer, values, i, op, n);
 			write(1, out, strlen(out));
 			memset(buffer, 0, charsRead);
-
+			
 			if (values->used == values->size)
 				reallocValues(values);
 			working = 0;

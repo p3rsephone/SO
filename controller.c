@@ -77,6 +77,7 @@ ControllerInfo initControllerInfo(int size){
 		info->node[i].size_out = 5;
 		info->node[i].used_in = 0;
 		info->node[i].used_out = 0;
+		info->node[i].connect_pid = 0;
 		info->node[i].in_ids = malloc (sizeof(int) * info->node[i].size_in);
 		info->node[i].out_ids = malloc (sizeof(int) * info->node[i].size_out);
 	}
@@ -117,6 +118,35 @@ void reallocNodeIds(ControllerInfo info, int id, char *id_name){
 	c = realloc(c, sizeof(int) * *size);
 }
 
+/**
+ * \brief Retorna a posição de um ID na estrutura
+ * @param  info Estrutura
+ * @param  id   ID a procurar
+ * @return      Posição do ID (-1 se não existir)
+ */
+int findID(ControllerInfo info, int id){
+	int i;
+	for (i=0; i<info->used; i++)
+		if (info->node[i].id == id)
+			return i;
+
+	return -1;
+}
+
+/**
+ * \brief Remove um determiado nodo da estrutura
+ * @param info Estrutura
+ * @param id   ID do nodo a remover
+ */
+void removeID(ControllerInfo info, int id){
+	int i;
+	for (i=0; i<info->used-1; i++)
+		if (info->node[i].id == id){
+			info->node[i] = info->node[i+1];
+			id = info->node[i+1].id;
+		}
+	if (id == info->node[i].id) info->used--;
+}
 
 /**
  * \brief Procura se um determinado ID já liga a um nodo
@@ -127,18 +157,16 @@ void reallocNodeIds(ControllerInfo info, int id, char *id_name){
  * @return       Já existe um value a ligar ao id (true) ou não (false)
  */
 int findValue(ControllerInfo info, int id, int value, char* c){
-	int i;
-	if (id >= info->size || value >= info->size)
-		return 0;
+	int i, idx = findID(info, id);
 
 	if (!strcmp(c, "in")){
-		for (i=0; i<info->node[id-1].used_in; i++)
-			if (info->node[id].in_ids[i] == value)
+		for (i=0; i<info->node[idx].used_in; i++)
+			if (info->node[idx].in_ids[i] == value)
 				return 1;
 	}
 	else{
-		for (i=0; i<info->node[id-1].used_out; i++)
-			if (info->node[id-1].out_ids[i] == value)
+		for (i=0; i<info->node[idx].used_out; i++)
+			if (info->node[idx].out_ids[i] == value)
 				return 1;
 	}
 	return 0;
@@ -151,22 +179,53 @@ int findValue(ControllerInfo info, int id, int value, char* c){
  * @param value ID do nodo a ligar a id
  * @param c     Se o ID liga à entrada ("in") ou à saída ("out")
  */
-void addID(ControllerInfo info, int id, int value, char* c){
+void addValue(ControllerInfo info, int id, int value, char* c){
+	int idx = findID(info, id);
 	if (!strcmp(c, "in")){
 		if (!findValue(info, id, value, "in")){
-			info->node[id-1].in_ids[info->node[id-1].used_in] = value;
-			info->node[id-1].used_in++;
-			if (info->node[id-1].used_in == info->node[id-1].size_in)
-				reallocNodeIds(info, id-1, "in");
+			info->node[idx].in_ids[info->node[idx].used_in] = value;
+			info->node[idx].used_in++;
+			if (info->node[idx].used_in == info->node[idx].size_in)
+				reallocNodeIds(info, idx, "in");
 		}
 	}
 	else{
 		if (!findValue(info, id, value, "out")){
-			info->node[id-1].out_ids[info->node[id-1].used_out] = value;
-			info->node[id-1].used_out++;
-			if (info->node[id-1].used_out == info->node[id-1].size_out)
-				reallocNodeIds(info, id-1, "out");
+			info->node[idx].out_ids[info->node[idx].used_out] = value;
+			info->node[idx].used_out++;
+			if (info->node[idx].used_out == info->node[idx].size_out)
+				reallocNodeIds(info, idx, "out");
 		}
+	}
+}
+
+/**
+ * \breif Remove um determinado ID (value) da lista de ligações de outro (ID)
+ * @param info  Estrutura
+ * @param id    ID do nodo
+ * @param value ID a ser removido
+ * @param c     Se é para remover uma entrada ("in") ou uma saída ("out")
+ */
+void removeValue(ControllerInfo info, int id, int value, char* c){
+	int i, idx = findID(info, id);
+
+	if (!strcmp(c, "in")){
+		for (i=0; i<info->node[idx].used_in-1; i++)
+			if (info->node[idx].in_ids[i] == value){
+				info->node[idx].in_ids[i] = info->node[idx].in_ids[i+1];
+				value = info->node[idx].in_ids[i+1];
+			}
+		if (value == info->node[idx].in_ids[i])
+			info->node[idx].used_in--;
+	}
+	else{
+		for (i=0; i<info->node[idx].used_out-1; i++)
+			if (info->node[idx].out_ids[i] == value){
+				info->node[idx].out_ids[i] = info->node[idx].out_ids[i+1];
+				value = info->node[idx].out_ids[i+1];
+			}
+		if (value == info->node[idx].out_ids[i])
+			info->node[idx].used_out--;
 	}
 }
 
@@ -177,23 +236,19 @@ void addID(ControllerInfo info, int id, int value, char* c){
  * @param size    Tamanho dos arrays
  * @param id      ID a remover
  */
-void removeFildes(int* out_ids, int* fildes, int *size, int id){
+void removeFildes(int* out_ids, int* fildes, int size, int id){
 	int i;
-	for (i=0; i<*size-1; i++)
+	for (i=0; i<size-1; i++)
 		if (id == out_ids[i]){
-			out_ids[i] = out_ids[i+1];
 			fildes[i] = fildes[i+1];
 			id = out_ids[i+1];
 		}
-	*size = *size - 1;
 }
 
 /** \brief Nome do pipe de saída */
 static char* exec_pipe_out_name;
 /** \brief ID do processo que executa o exec */
 static int exec_child_pid;
-/** \brief Diz se o node será removido */
-static int exec_remove = 0;
 
 /**
  * \brief Trata dos sinais recebidos pelo execNode
@@ -210,15 +265,12 @@ void nodeHandler(int sig){
 		}
 		//Terminar o exec e sair
 		case SIGINT :{
-			if (exec_remove == 1) 
-				_exit(0);
 			kill(exec_child_pid, SIGINT);
 			break;
 		}
 		//Remover o nodo atual
 		case SIGUSR2 :{
 			raise(SIGINT);
-			exec_remove = 1;
 			break;
 		}
 	}
@@ -236,28 +288,23 @@ void execNode(ControllerInfo info, int id){
 	int pd_out[2], charsRead, x, f_in;
 	char buffer[PIPE_BUF];
 	pipe(pd_out);
-	exec_pipe_out_name = info->node[id-1].pipeOut_name;
+	exec_pipe_out_name = info->node[findID(info, id)].pipeOut_name;
 	kill(getppid(), SIGUSR1);
-	f_in = open(info->node[id-1].pipeIn_name, O_RDONLY);
+	f_in = open(info->node[findID(info, id)].pipeIn_name, O_RDONLY);
 
 	//exec command
 	if ((x = fork()) == 0){
 		dup2(pd_out[1], 1);
 		close(pd_out[0]);
 		dup2(f_in, 0);
-		execlp(info->node[id-1].cmd, info->node[id-1].cmd, info->node[id-1].args, NULL);
+		close(f_in);
+		_exit(execlp(info->node[findID(info, id)].cmd, info->node[findID(info, id)].cmd, info->node[findID(info, id)].args, NULL));
 	}
 	else{
 		close(pd_out[1]);
 		exec_child_pid = x;
-		while((charsRead = readline(pd_out[0], buffer, PIPE_BUF)) > 0){
+		while((charsRead = readline(pd_out[0], buffer, PIPE_BUF)) > 0)
 			write(1, buffer, charsRead);
-		}
-		//Irá fazer a ligação entre os diferentes connects, caso o nó seja removido
-		if (exec_remove){
-			while ((charsRead = readline(f_in, buffer, PIPE_BUF)) > 0)
-				write(1, buffer, charsRead);
-		}
 		_exit(0);
 	}
 }
@@ -277,25 +324,28 @@ void default_handler(int sig){}
  */
 void createNode(ControllerInfo info, char** c){
 	signal(SIGUSR1, default_handler);
-	int nodeID = atoi(c[1]), new_connect = 0, old_pid;
+	int nodeID = atoi(c[1]), new_connect = 0, old_pid, idx;
+	
+	idx = findID(info, nodeID);
+	if(idx == -1) idx = info->used; 
 
-	info->node[nodeID-1].cmd = addCommandPrefix(c[2]);
-	info->node[nodeID-1].args = strcatWithSpaces(c+3);
+	info->node[idx].cmd = addCommandPrefix(c[2]);
+	info->node[idx].args = strcatWithSpaces(c+3);
 
 	//Se o nodo já existe, irá substituir-lo com o novo comando
-	if (info->node[nodeID-1].id != -1){
+	if (idx != info->used){
 		new_connect = 1;
-		old_pid = info->node[nodeID-1].pid;
+		old_pid = info->node[idx].pid;
 	}
 	//Se o nodo não existe, cria um novo
 	else{
-		info->node[nodeID-1].id = nodeID;
+		info->node[idx].id = nodeID;
 		info->used++;
-		info->node[nodeID-1].pipeIn_name = fifoName(info->nnodes, "in");
-		info->node[nodeID-1].pipeOut_name = fifoName(info->nconnects, "out");
+		info->node[idx].pipeIn_name = fifoName(info->nnodes, "in");
+		info->node[idx].pipeOut_name = fifoName(info->nconnects, "out");
 		info->nnodes++;
 		info->nconnects++;
-		mkfifo(info->node[nodeID-1].pipeIn_name, 0666);
+		mkfifo(info->node[idx].pipeIn_name, 0666);
 	}
 
 	int pd[2], x;
@@ -306,7 +356,8 @@ void createNode(ControllerInfo info, char** c){
 
 	else{
 		pause();
-		info->node[nodeID-1].pid = x;
+		open(info->node[idx].pipeIn_name, O_WRONLY);
+		info->node[findID(info, nodeID)].pid = x;
 		if (new_connect){
 			kill(x, SIGUSR1);
 			kill(old_pid, SIGINT);
@@ -331,12 +382,10 @@ void inject(ControllerInfo info, char** c){
 	if (!fork()){
 		close(pd1[1]);
 		dup2(pd1[0], 0);
-		f_in = open(info->node[nodeID-1].pipeIn_name, O_WRONLY);
+		f_in = open(info->node[findID(info, nodeID)].pipeIn_name, O_WRONLY);
 		dup2(f_in, 1);
 		close(f_in);
-		execlp(cmd, cmd, args, NULL);
-		close(pd1[0]);
-		_exit(0);
+		_exit(execlp(cmd, cmd, args, NULL));
 	}
 	else{
 		close(pd1[0]);
@@ -353,6 +402,12 @@ static int disconnect_done = 0;
 static int disconnect_iterations = 0;
 /** \brief Indica o id até ao momento */
 static int disconnect_id = 0;
+/** \brief Array com os ids a fazer disconnect */
+static int* disconnect_ids;
+/** \brief Número de elementos em disconnect_ids */
+static int disconnect_ids_size = 0;
+/** \brief Indica se o connect está a escrever */
+static int connect_working = 0;
 
 /**
  * \brief Tratará dos sinais do connect (receberá os bits de disconnect)
@@ -364,6 +419,7 @@ void connect_handler(int sig){
 		disconnect_iterations = 0;
 		disconnect_id = 0;
 	}
+
 	switch(sig){
 		//Bit 1
 		case SIGUSR1 :{
@@ -379,7 +435,16 @@ void connect_handler(int sig){
 		//Done
 		case SIGHUP :{
 			disconnect_done = 1;
+			disconnect_ids[disconnect_ids_size++] = disconnect_id;
 			break;
+		}
+		//Sair
+		case SIGINT :{
+			if (connect_working == 0){
+				_exit(0);
+			}
+			else connect_working = -1;
+		break;
 		}
 	}
 	//Diz que pode receber um novo sinal
@@ -395,51 +460,69 @@ void connect(ControllerInfo info, char** c){
 	signal(SIGUSR1, connect_handler);
 	signal(SIGUSR2, connect_handler);
 	signal(SIGHUP, connect_handler);
-	int in = atoi(c[1]), i, x, j;
+	signal(SIGINT, connect_handler);
+	disconnect_ids = malloc (sizeof(int) * info->used);
+	int in = atoi(c[1]), i, x, j, in_idx;
+	in_idx = findID(info, in);
+
+	//Cria o pipe de onde irá ler
+	mkfifo(info->node[in_idx].pipeOut_name, 0666);
+
+	//Irá percorrer todos os nods de saída
 	for (i=2; c[i]; i++){
 		int out = atoi(c[i]);
-		addID(info, in, out, "out");
-		addID(info, out, in, "in");
+		addValue(info, in, out, "out");
+		addValue(info, out, in, "in");
+
+		//Se não existe mais nenhum elemento a adicionar
+		if (c[i+1] == NULL){
 
 		char buffer[PIPE_BUF];
 		int charsRead = 0;
 
 		x = fork();
 		if (!x){
-			//Criar um fifo e avisar ao nodo para escrever a sua saída para um pipe
-			mkfifo(info->node[in-1].pipeOut_name, 0666);
-			kill(info->node[in-1].pid, SIGUSR1);
-			int f_out = open(info->node[in-1].pipeOut_name, O_RDONLY);
-			int fildes[info->node[in-1].used_out];
-
-			//Se já existe uma ligação, irá terminar-la e criar uma
-			//nova com os nodos anteriores + novo
-			if (info->node[in-1].used_out > 1){
-				kill(info->node[in-1].connect_pid, SIGINT);
-				for (j=0; j<info->node[in-1].used_out; j++){
-					int f = info->node[in-1].out_ids[j];
-					fildes[j] = open(info->node[f-1].pipeIn_name, O_WRONLY);
-				}
+			//Avisa o node para abrir o pipe de saída e abre o pipe para ler o seu output
+			kill(info->node[in_idx].pid, SIGUSR1);
+			int f_out = open(info->node[in_idx].pipeOut_name, O_RDONLY);
+			
+			//Abrirá todos os nodos que terá que ligar
+			int fildes[info->node[in_idx].used_out];
+			for (j=0; j<info->node[in_idx].used_out; j++){
+				int f = info->node[in_idx].out_ids[j];
+				fildes[j] = open(info->node[findID(info, f)].pipeIn_name, O_WRONLY);
 			}
-			//Se não existe ligação apenas abre o novo descitor
-			else fildes[0] = open(info->node[out-1].pipeIn_name, O_WRONLY);
+
+			//Terminará a ligação anterior, caso exista
+			if (info->node[in_idx].connect_pid != 0)
+				kill(info->node[in_idx].connect_pid, SIGINT);
 
 			//Ler da saída do nodo
 			while ((charsRead = readline(f_out, buffer, PIPE_BUF)) > 0){
-				//Remover um nodo da saída (disconnect)
+				connect_working = 1;
+
+				//Remover nodos da saída (disconnect)
 				if (disconnect_done){
-					removeFildes(info->node[in-1].out_ids, fildes, &(info->node[in-1].used_out), disconnect_id);
+					for (j=0; j<disconnect_ids_size; j++){
+						removeFildes(info->node[in_idx].out_ids, fildes, info->node[in_idx].used_out, disconnect_ids[j]);
+						info->node[in_idx].used_out--;
+					}
 					disconnect_done = 0;
+					disconnect_ids_size = 0;
 				}
+
 				//Escrever para os nodos que estejam ligados a este
-				for(j=0; j<info->node[in-1].used_out; j++){
+				for(j=0; j<info->node[in_idx].used_out; j++)
 					write(fildes[j], buffer, charsRead);
-				}
 				memset(buffer, 0, charsRead);
+
+				if (connect_working == -1) _exit(0);
+				else connect_working = 0;
 			}
 			_exit(0);
 		}
-		info->node[in-1].connect_pid = x;
+		info->node[in_idx].connect_pid = x;
+		}
 	}
 }
 
@@ -450,7 +533,7 @@ void connect(ControllerInfo info, char** c){
  */
 void disconnect(ControllerInfo info, char** c){
 	signal(SIGUSR1, default_handler);
-	int id1, id2;
+	int id1, id2, aux;
 	id1 = atoi(c[1]);
 	id2 = atoi(c[2]);
 
@@ -466,14 +549,17 @@ void disconnect(ControllerInfo info, char** c){
 	}
 
 	//Enviar os bits do id a desligar
-	int id1_connect = info->node[id1-1].connect_pid;
-	for (; id2 > 0; id2 = id2 >> 1){
-		if (id2 % 2) kill(id1_connect, SIGUSR1); //Bit 1
+	int id1_connect = info->node[findID(info, id1)].connect_pid;
+	for (aux = id2; aux > 0; aux = aux >> 1){
+		if (aux % 2) kill(id1_connect, SIGUSR1); //Bit 1
 		else kill(id1_connect, SIGUSR2); //Bit 0
 		pause(); //Fica à espera para enviar um novo bit
 	}
 	//Já enviou os bits todos
 	kill(id1_connect, SIGHUP);
+
+	removeValue(info, id1, id2, "out");
+	removeValue(info, id2, id1, "in");
 }
 
 /**
@@ -482,10 +568,33 @@ void disconnect(ControllerInfo info, char** c){
  * @param c    Arary de strings com o nodo a remover
  */
 void removeNode(ControllerInfo info, char** c){
-	int id = atoi(c[1]);
-	info->node[id-1].id = -1;
-	//Diz ao node que pode parar o exec
-	kill(info->node[id-1].pid, SIGUSR2);
+	int id = atoi(c[1]), i, j, idx;
+	idx = findID(info, id);
+
+	if (info->node[idx].id != -1){
+		//Remover id da lista de saída dos que enviam
+		for (i=0; i<info->node[idx].used_in; i++)
+			removeValue(info, info->node[idx].in_ids[i], id, "out");
+
+		//Remover id da lista de entrada dos que recebem
+		for (i=0; i<info->node[idx].used_out; i++)
+			removeValue(info, info->node[idx].out_ids[i], id, "in");
+
+		//Fazer connects restantes
+		for (i=0; i<info->node[idx].used_in; i++)
+			for (j=0; j<info->node[idx].used_out; j++)
+				if (!findValue(info, info->node[idx].in_ids[i], info->node[idx].out_ids[j], "out")){
+					char* values = malloc (sizeof(char) * 30);
+					snprintf(values, 30, "connect %d %d", info->node[idx].in_ids[i], info->node[idx].out_ids[j]);
+					char** c = divideString(values, " ");
+					connect(info, c);
+				}
+		
+		//Diz ao node que pode parar o exec
+		kill(info->node[findID(info, id)].pid, SIGINT);
+
+		removeID(info, id);
+	}
 }
 
 /**
