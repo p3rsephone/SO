@@ -4,7 +4,7 @@ LIBS = -lm
 
 all: controller const filter spawn window client
 
-controller: stringProcessing.o
+controller: stringProcessing.o controller.c
 	$(CC) $(CFLAGS) -o controller stringProcessing.o controller.c $(LIBS)
 
 const: stringProcessing.o const.c
