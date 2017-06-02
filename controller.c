@@ -54,9 +54,24 @@ typedef struct controllerInfo{
 	int size; ///< tamanho da estrutura
 	int used; ///< número de posições usadas
 	int nnodes; ///< número de nodes até ao momento
-	int nconnects; ///< número de connects até ao momento
 	ControllerNode node; ///< array de nodos
 }*ControllerInfo;
+
+/**
+ * Aloca memória num node
+ * @param info Estrutura
+ * @param i    Indice a alocar memória
+ */
+void alloc_node(ControllerInfo info, int i){
+	info->node[i].id = -1;
+	info->node[i].size_in = 5;
+	info->node[i].size_out = 5;
+	info->node[i].used_in = 0;
+	info->node[i].used_out = 0;
+	info->node[i].connect_pid = 0;
+	info->node[i].in_ids = malloc (sizeof(int) * info->node[i].size_in);
+	info->node[i].out_ids = malloc (sizeof(int) * info->node[i].size_out);
+}
 
 /**
  * \brief Inicializa um ControllerInfo
@@ -67,20 +82,11 @@ ControllerInfo initControllerInfo(int size){
 	ControllerInfo info = malloc (sizeof(struct controllerInfo));
 	info->size = size;
 	info->used = 0;
-	info->nconnects = 0;
-	info->node = malloc(sizeof(struct controllerNode) * info->size);
-
+	info->nnodes = 0;
+	info->node = malloc (sizeof(struct controllerNode) * info->size);
 	int i;
-	for (i=0; i<size; i++){
-		info->node[i].id = -1;
-		info->node[i].size_in = 5;
-		info->node[i].size_out = 5;
-		info->node[i].used_in = 0;
-		info->node[i].used_out = 0;
-		info->node[i].connect_pid = 0;
-		info->node[i].in_ids = malloc (sizeof(int) * info->node[i].size_in);
-		info->node[i].out_ids = malloc (sizeof(int) * info->node[i].size_out);
-	}
+	for (i=0; i<size; i++)
+		alloc_node(info, i);
 
 	return info;
 }
@@ -90,8 +96,11 @@ ControllerInfo initControllerInfo(int size){
  * @param info Estrutura
  */
 void reallocControllerInfo(ControllerInfo info){
+	int i;
 	info->size *= 2;
 	info->node = realloc(info->node, sizeof(struct controllerNode) * info->size);
+	for (i=info->used; i<info->size; i++)
+		alloc_node(info, i);
 }
 
 /**
@@ -245,11 +254,34 @@ void removeFildes(int* out_ids, int* fildes, int size, int id){
 		}
 }
 
+/**
+ * Para todos os nodos de entrada de um determinado nodo
+ * @param info Estrutura
+ * @param id   ID do nodo
+ */
+void stop_proc(ControllerInfo info, int id){
+	int i = 0, idx = findID(info, id);
+	for (i=0; i < info->node[idx].used_out; i++)
+		kill(info->node[findID(info, info->node[idx].out_ids[i])].pid, SIGSTOP);
+}
+
+/**
+ * Continua todos os nodos de entrada de um determinado nodo
+ * @param info Estrutura
+ * @param id   ID do nodo
+ */
+void cont_proc(ControllerInfo info, int id){
+	int i = 0, idx = findID(info, id);
+	for (i=0; i < info->node[idx].used_out; i++)
+		kill(info->node[findID(info, info->node[idx].out_ids[i])].pid, SIGCONT);
+}
+
 /** \brief Nome do pipe de saída */
 static char* exec_pipe_out_name;
 /** \brief ID do processo que executa o exec */
 static int exec_child_pid;
-
+/** Descritor do pipe de saída */
+static int exec_f_out = -1;
 /**
  * \brief Trata dos sinais recebidos pelo execNode
  * @param sig Sinal
@@ -258,9 +290,9 @@ void nodeHandler(int sig){
 	switch(sig){
 		//Abrir o pipe de saída e começar a escrever para lá
 		case SIGUSR1 :{
-			int f_out = open(exec_pipe_out_name, O_WRONLY);
-			if (f_out != -1) 
-				dup2(f_out, 1);
+			exec_f_out = open(exec_pipe_out_name, O_WRONLY);
+			if (exec_f_out != -1) 
+				dup2(exec_f_out, 1);
 			break;
 		}
 		//Terminar o exec e sair
@@ -304,7 +336,8 @@ void execNode(ControllerInfo info, int id){
 		close(pd_out[1]);
 		exec_child_pid = x;
 		while((charsRead = readline(pd_out[0], buffer, PIPE_BUF)) > 0)
-			write(1, buffer, charsRead);
+			if (exec_f_out != -1)
+				write(1, buffer, charsRead);
 		_exit(0);
 	}
 }
@@ -342,9 +375,8 @@ void createNode(ControllerInfo info, char** c){
 		info->node[idx].id = nodeID;
 		info->used++;
 		info->node[idx].pipeIn_name = fifoName(info->nnodes, "in");
-		info->node[idx].pipeOut_name = fifoName(info->nconnects, "out");
+		info->node[idx].pipeOut_name = fifoName(info->nnodes, "out");
 		info->nnodes++;
-		info->nconnects++;
 		mkfifo(info->node[idx].pipeIn_name, 0666);
 	}
 
@@ -440,9 +472,8 @@ void connect_handler(int sig){
 		}
 		//Sair
 		case SIGINT :{
-			if (connect_working == 0){
+			if (connect_working == 0)
 				_exit(0);
-			}
 			else connect_working = -1;
 		break;
 		}
@@ -582,16 +613,17 @@ void removeNode(ControllerInfo info, char** c){
 
 		//Fazer connects restantes
 		for (i=0; i<info->node[idx].used_in; i++)
-			for (j=0; j<info->node[idx].used_out; j++)
-				if (!findValue(info, info->node[idx].in_ids[i], info->node[idx].out_ids[j], "out")){
-					char* values = malloc (sizeof(char) * 30);
-					snprintf(values, 30, "connect %d %d", info->node[idx].in_ids[i], info->node[idx].out_ids[j]);
-					char** c = divideString(values, " ");
-					connect(info, c);
-				}
+			for (j=0; j<info->node[idx].used_out; j++){
+				char* values = malloc (sizeof(char) * 30);
+				snprintf(values, 30, "connect %d %d", info->node[idx].in_ids[i], info->node[idx].out_ids[j]);
+				char** c = divideString(values, " ");
+				connect(info, c);
+			}
 		
 		//Diz ao node que pode parar o exec
+		stop_proc(info, id);
 		kill(info->node[findID(info, id)].pid, SIGINT);
+		cont_proc(info, id);
 
 		removeID(info, id);
 	}
@@ -649,7 +681,7 @@ void readCommand(char *buf, ControllerInfo info){
 int main(int argc, char *argv[]){
 	int charsRead;
 	char buf[4096];
-	ControllerInfo info = initControllerInfo(20);
+	ControllerInfo info = initControllerInfo(50);
 
 	//read file
 	if (argc > 1){
