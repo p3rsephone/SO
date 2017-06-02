@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -g -Wall -Wno-unused-result -O2
 LIBS = -lm
 
-all: controller const filter spawn window
+all: controller const filter spawn window client
 
 controller: stringProcessing.o
 	$(CC) $(CFLAGS) -o controller stringProcessing.o controller.c $(LIBS)
@@ -22,6 +22,9 @@ window: stringProcessing.o window.c
 stringProcessing.o: stringProcessing.c stringProcessing.h
 	$(CC) $(CFLAGS) -c stringProcessing.c
 
+client: stringProcessing.o client.c
+	$(CC) $(CFLAGS) -o client stringProcessing.o client.c
+
 clean:
-	rm fifo* *.o
+	rm fifo* *.o inject_*
 
