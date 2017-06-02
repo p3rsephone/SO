@@ -54,6 +54,7 @@ typedef struct controllerInfo{
 	int size; ///< tamanho da estrutura
 	int used; ///< número de posições usadas
 	int nnodes; ///< número de nodes até ao momento
+	int ninjects; ///< número de injects até ao momento
 	ControllerNode node; ///< array de nodos
 }*ControllerInfo;
 
@@ -83,6 +84,7 @@ ControllerInfo initControllerInfo(int size){
 	info->size = size;
 	info->used = 0;
 	info->nnodes = 0;
+	info->ninjects = 0;
 	info->node = malloc (sizeof(struct controllerNode) * info->size);
 	int i;
 	for (i=0; i<size; i++)
@@ -403,29 +405,33 @@ void createNode(ControllerInfo info, char** c){
  * @param c    Array com o comando a executar
  */
 void inject(ControllerInfo info, char** c){
-	int nodeID = atoi(c[1]), charsRead = 0;
+	int nodeID = atoi(c[1]);
 	char* cmd = addCommandPrefix(c[2]);
 	char* args = strcatWithSpaces(c+3);
-	char buffer[PIPE_BUF];
-
-	int f_in, pd1[2];
-	pipe(pd1);
 
 	if (!fork()){
-		close(pd1[1]);
-		dup2(pd1[0], 0);
-		f_in = open(info->node[findID(info, nodeID)].pipeIn_name, O_WRONLY);
-		dup2(f_in, 1);
-		close(f_in);
+		int f_node, f_input;
+		char* inj_name = malloc(sizeof(char) * 20);
+		snprintf(inj_name, 20, "inject_%d", info->ninjects);
+		mkfifo(inj_name, 0666);
+
+		//Executar um novo terminal com o programa que irá escrever para o inject
+		if (!fork()){
+			char *arg = malloc(sizeof(char) * 30);
+			snprintf(arg, 30, "./client %s", inj_name);
+			_exit(execlp("gnome-terminal", "gnome-terminal", "-e", arg, NULL));
+		}
+		
+		f_node = open(info->node[findID(info, nodeID)].pipeIn_name, O_WRONLY);
+		f_input = open(inj_name, O_RDONLY);
+		dup2(f_input, 0);
+		close(f_input);
+		dup2(f_node, 1);
+		close(f_node);
 		_exit(execlp(cmd, cmd, args, NULL));
 	}
-	else{
-		close(pd1[0]);
-		while ((charsRead = readline(0, buffer, PIPE_BUF)) > 0){
-			write(pd1[1], buffer, charsRead);
-			memset(buffer, 0, charsRead);
-		}
-	}
+
+	else info->ninjects++;
 }
 
 /** \brief Indica se o disconnect foi concluído */
@@ -680,7 +686,7 @@ void readCommand(char *buf, ControllerInfo info){
  */
 int main(int argc, char *argv[]){
 	int charsRead;
-	char buf[4096];
+	char buf[PIPE_BUF];
 	ControllerInfo info = initControllerInfo(50);
 
 	//read file
