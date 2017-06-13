@@ -1,4 +1,14 @@
 # COMMANDS
 The project is designed to support the commands:
 
-TABLE HERE
+| Commands     | Function                                                | Example  |
+| ------------ |:-------------------------------------------------------:| --------:|
+| `const`      | Appends the argument to the input                       | $1600    |
+| `filter`     | Filters the input with a condition given as the argument|   $12    |
+| `window`     | are neat                                                |    $1    |
+| `spawn`      | are neat                                                |    $1    |
+| `node`       | are neat                                                |    $1    |
+| `inject`     | are neat                                                |    $1    |
+| `connect`    | are neat                                                |    $1    |
+| `disconnect` | are neat                                                |    $1    |
+| `remove`     | are neat                                                |    $1    |
