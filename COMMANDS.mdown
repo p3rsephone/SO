@@ -1,7 +1,7 @@
 # Commands
 This project is designed to support the commands:
 
-| Commands     | Brief summary of what it does                                                              | Example             | Result |
+| Commands     | Brief summary                                                             | Example             | Result |
 | ------------ |:------------------------------------------------------------------------------------------:| :------------------:| :-----:|
 | `const`      | Appends the argument to the input                                                          | `const 10`          | *input*:10 |
 | `filter`     | Filters the input with a condition given as the argument                                   | `filter 2 < 4`      | *input where the second column is less than the fourth one* |
