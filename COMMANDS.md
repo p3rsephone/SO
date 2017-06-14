@@ -3,15 +3,15 @@ This project is designed to support the commands:
 
 | Commands     | Brief summary                                                             |
 | ------------ |:------------------------------------------------------------------------------------------:|
-| [`const`](COMMANDS.mdown#const)      | Appends the argument to the input                                                          | 
-| [`filter`](COMMANDS.mdown#filter) | Filters the input with a condition given as the argument                                   | 
-| [`window`](COMMANDS.mdown#window)     | Repeats the input,  with an added column with the result of an operation given as argument | 
-| [`spawn`](COMMANDS.mdown#spawn)      | Executes a command                                                                         | 
-| [`node`](COMMANDS.mdown#node)        | Creates a node                                                                             | 
-| [`connect`](COMMANDS.mdown#connect)     | Connects 2 nodes together                                                                  | 
-| [`disconnect`](COMMANDS.mdown#disconnect)  | Disconnects 2 nodes that were previously connected                                         | 
-| [`inject`](COMMANDS.mdown#inject)      | Injects the result of a command to a node                                                  | 
-| [`remove`](COMMANDS.mdown#remove) | Removes a node from the network                                                            |
+| [`const`](COMMANDS.md#const)      | Appends the argument to the input                                                          | 
+| [`filter`](COMMANDS.md#filter) | Filters the input with a condition given as the argument                                   | 
+| [`window`](COMMANDS.md#window)     | Repeats the input,  with an added column with the result of an operation given as argument | 
+| [`spawn`](COMMANDS.md#spawn)      | Executes a command                                                                         | 
+| [`node`](COMMANDS.md#node)        | Creates a node                                                                             | 
+| [`connect`](COMMANDS.md#connect)     | Connects 2 nodes together                                                                  | 
+| [`disconnect`](COMMANDS.md#disconnect)  | Disconnects 2 nodes that were previously connected                                         | 
+| [`inject`](COMMANDS.md#inject)      | Injects the result of a command to a node                                                  | 
+| [`remove`](COMMANDS.md#remove) | Removes a node from the network                                                            |
 
 ## Const
 This command reproduces the lines, adding a new column with the same value.
@@ -154,4 +154,4 @@ This command removes the node `id`. It is also guaranteed that all of the nodes 
 ```
 remove 2
 ```
-specifies that, following the previous [example](COMMANDS.mdown#example-5),  node 2 does not exist anymore, and node 1 is now connected to 3 and 5.
+specifies that, following the previous [example](COMMANDS.md#example-5),  node 2 does not exist anymore, and node 1 is now connected to 3 and 5.
