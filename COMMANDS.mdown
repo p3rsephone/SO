@@ -5,7 +5,7 @@ This project is designed to support the commands:
 | ------------ |:------------------------------------------------------------------------------------------:|
 | [`const`](COMMANDS.mdown#const)      | Appends the argument to the input                                                          | 
 | [`filter`](COMMANDS.mdown#filter) | Filters the input with a condition given as the argument                                   | 
-| [`window`] (COMMANDS.mdown#window)     | Repeats the input,  with an added column with the result of an operation given as argument | 
+| [`window`](COMMANDS.mdown#window)     | Repeats the input,  with an added column with the result of an operation given as argument | 
 | [`spawn`](COMMANDS.mdown#spawn)      | Executes a command                                                                         | 
 | [`node`](COMMANDS.mdown#node)        | Creates a node                                                                             | 
 | [`inject`](COMMANDS.mdown#inject)      | Injects the result of a command to a node                                                  | 
