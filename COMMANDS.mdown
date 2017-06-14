@@ -24,6 +24,7 @@ This command reproduces the lines, adding a new column with the same value.
 const 10
 ```
 has the following result:
+
 | Input | Output |
 | ----- |:------:|
 | `a:3:x:4` | `a:3:x:4:10` |
