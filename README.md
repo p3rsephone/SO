@@ -13,6 +13,7 @@ You can type all of your commands in the controller. If you `inject` someting, a
 ## Things to improve
 - [ ] Add support for MacOS
 - [ ] Don't lose information when disconnecting while node is *just reading*
+- [ ] Add page about examples
 
 ## Contributors
 Made by:
