@@ -3,15 +3,15 @@ This project is designed to support the commands:
 
 | Commands     | Brief summary                                                             |
 | ------------ |:------------------------------------------------------------------------------------------:|
-| `const`      | Appends the argument to the input                                                          | 
+| [`const`](COMMANDS.mdown#const)      | Appends the argument to the input                                                          | 
 | [`filter`](COMMANDS.mdown#filter) | Filters the input with a condition given as the argument                                   | 
-| `window`     | Repeats the input,  with an added column with the result of an operation given as argument | 
-| `spawn`      | Executes a command                                                                         | 
-| `node`       | Creates a node                                                                             | 
-| `inject`     | Injects the result of a command to a node                                                  | 
-| `connect`    | Connects 2 nodes together                                                                  | 
-| `disconnect` | Disconnects 2 nodes that were previously connected                                         | 
-| `remove`     | Removes a node from the network                                                            |
+| [`window`] (COMMANDS.mdown#window)     | Repeats the input,  with an added column with the result of an operation given as argument | 
+| [`spawn`](COMMANDS.mdown#spawn)      | Executes a command                                                                         | 
+| [`node`](COMMANDS.mdown#node)        | Creates a node                                                                             | 
+| [`inject`](COMMANDS.mdown#inject)      | Injects the result of a command to a node                                                  | 
+| [`connect`](COMMANDS.mdown#connect)     | Connects 2 nodes together                                                                  | 
+| [`disconnect`](COMMANDS.mdown#disconnect)  | Disconnects 2 nodes that were previously connected                                         | 
+| [`remove`](COMMANDS.mdown#remove) | Removes a node from the network                                                            |
 
 ## Const
 This command reproduces the lines, adding a new column with the same value.
@@ -31,6 +31,142 @@ has the following result:
 | `b:1:y:10` | `b:1:y:10:10` |
 | `a:2:w:2` | `a:2:w:2:10` |
 | `d:5:z:34` | `d:5:z:34:10` |
+
+## Filter
+This command reproduces the lines that satisfy a condition indicated in its arguments.It supports the operators: >, <, =, <=, >= and !=.
+
+### Usage
+`filter <column> <operator> <column>`
+
+### Example
+```
+filter 2 < 4
+```
+has the following result:
+
+| Input | Output |
+| ----- | ------ |
+| `a:3:x:4` | `a:3:x:4` |
+| `b:1:y:10` | `b:1:y:10` |
+| `a:2:w:2` | `d:5:z:34` |
+| `d:5:z:34` |
+
+## Window
+This command reproduces all of the lines, adding a new column with the result of an operation that is calculted with the values of a column, amongst several lines. It supports the operators : avg, max, min and sum.
+
+### Usage
+`window <column> <operator> <lines>`
+
+### Example
+```
+window 4 avg 2
+```
+has the following result:
+
+| Input | Output | The math |
+| ----- | ------ | -------- |
+| `a:3:x:4` | `a:3:x:4:0` | Since there are no 2 previous lines the avg is 0 |
+| `b:1:y:10` | `b:1:y:10:4` | Since there is only 1 previous line with the value 4 the avg is 4 |
+| `a:2:w:2` | `a:2:w:2:7` | (4+10)/2 = 7 |
+| `d:5:z:34` | `d:5:z:34:6`| (10+2)/2 = 6 |
+
+## Spawn
+This command reproduces all of the lines executing the given command to each line, adding a new line with the *exit status*. 
+
+### Usage
+`spawn <cmd> <args...>`
+
+### Example
+```
+spawn mailx -s $3 x@y.com
+```
+has the following result:
+
+| Input | Output |
+| ----- | ------ |
+| `a:2:w:2` | `a:2:w:2:0` |
+| `d:5:z:34` | `d:5:z:34:0`|
+
+and also sends messages with the subject w and the subject z to x@y.com.
+
+## Others
+Other commands like `cut`, `grep`, `tee`, `echo`, `ls` and some more are also supported.
+
+## Filter
+This command reproduces the lines that satisfy a condition indicated in its arguments.
+
+### Usage
+`filter <column> <operator> <column>`
+
+### Example
+```
+filter 2 < 4
+```
+has the following result:
+
+| Input | Output |
+| ----- | ------ |
+| `a:3:x:4` | `a:3:x:4` |
+| `b:1:y:10` | `b:1:y:10` |
+| `a:2:w:2` | `d:5:z:34` |
+| `d:5:z:34` |
+
+## Filter
+This command reproduces the lines that satisfy a condition indicated in its arguments.
+
+### Usage
+`filter <column> <operator> <column>`
+
+### Example
+```
+filter 2 < 4
+```
+has the following result:
+
+| Input | Output |
+| ----- | ------ |
+| `a:3:x:4` | `a:3:x:4` |
+| `b:1:y:10` | `b:1:y:10` |
+| `a:2:w:2` | `d:5:z:34` |
+| `d:5:z:34` |
+
+## Filter
+This command reproduces the lines that satisfy a condition indicated in its arguments.
+
+### Usage
+`filter <column> <operator> <column>`
+
+### Example
+```
+filter 2 < 4
+```
+has the following result:
+
+| Input | Output |
+| ----- | ------ |
+| `a:3:x:4` | `a:3:x:4` |
+| `b:1:y:10` | `b:1:y:10` |
+| `a:2:w:2` | `d:5:z:34` |
+| `d:5:z:34` |
+
+## Filter
+This command reproduces the lines that satisfy a condition indicated in its arguments.
+
+### Usage
+`filter <column> <operator> <column>`
+
+### Example
+```
+filter 2 < 4
+```
+has the following result:
+
+| Input | Output |
+| ----- | ------ |
+| `a:3:x:4` | `a:3:x:4` |
+| `b:1:y:10` | `b:1:y:10` |
+| `a:2:w:2` | `d:5:z:34` |
+| `d:5:z:34` |
 
 ## Filter
 This command reproduces the lines that satisfy a condition indicated in its arguments.
