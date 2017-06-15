@@ -11,7 +11,7 @@ Use `make`.
 You can type all of your commands in the controller.
 
 ## Still lost :weary:
-If you don't know how to even start, you can check out one of our [examples](https://github.com/p3rsephone/SO-Project/wiki/Examples) first.
+If you don't know where to start, you can check out one of our [examples](https://github.com/p3rsephone/SO-Project/wiki/Examples) first.
 
 ## Things to improve
 - [ ] Add support for MacOS
