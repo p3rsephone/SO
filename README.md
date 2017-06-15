@@ -8,7 +8,10 @@ This project is inspired by a Stream Processing network like [Apache Storm][1]. 
 Use `make`.
 
 ## And how do I use it?
-You can type all of your commands in the controller. If you `inject` someting, a new terminal will open where you can then write more commands.
+You can type all of your commands in the controller.
+
+## Still lost :weary:
+If you don't know how to even start, you can check out one of our [examples](https://github.com/p3rsephone/SO-Project/wiki/Examples) first.
 
 ## Things to improve
 - [ ] Add support for MacOS
