@@ -4,7 +4,7 @@ Project for Operating Systems in C
 ## What is it?
 This project is inspired by a Stream Processing network like [Apache Storm][1]. It simulates a network of components to filter, modify and process several events. It is meant for Linux systems, and it introduces the concepts of pipes and signals. It is able to run several [commands](https://github.com/p3rsephone/SO-Project/wiki/Commands).
 
-## How do I run it?
+## How do I compile it?
 Use `make`.
 
 ## And how do I use it?
